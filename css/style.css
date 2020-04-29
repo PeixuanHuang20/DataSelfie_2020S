@@ -1,0 +1,41 @@
+body {
+    font-family: helvetica, arial, sans-serif;
+    margin: 2em;
+  }
+  
+  h1 {
+    font-style: italic;
+    color: #373fff;
+  }
+  
+  body { margin: 0; }
+  
+  canvas { width: 80%; height: 80% ;}
+
+  button{color:black;}
+
+  #container{
+    width: 1024px;
+    height: 798px;
+}
+
+#tool_menu div{
+    width: 80px;
+    border-style: solid;
+    border-width: .05px;
+}
+
+.colorPickSelector {
+  border-radius: 5px;
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+  -webkit-transition: all linear .2s;
+  -moz-transition: all linear .2s;
+  -ms-transition: all linear .2s;
+  -o-transition: all linear .2s;
+  transition: all linear .2s;
+}
+
+.colorPickSelector:hover { transform: scale(1.1); }
+  
