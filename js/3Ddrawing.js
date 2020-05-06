@@ -2,16 +2,17 @@ import * as THREE from './three/build/three.module.js';
 import { OrbitControls } from './three/examples/jsm/controls/OrbitControls.js';
 import { VRButton } from './three/examples/jsm/webxr/VRButton.js';
 import { GLTFLoader } from './three/examples/jsm/loaders/GLTFLoader.js';
-
-import { MeshLine, MeshLineMaterial, MeshLineRaycast } from './threejs-meshline/src/index.js';
+import { Line2 } from './three/examples/jsm/lines/Line2.js';
+import { LineMaterial } from './three/examples/jsm/lines/LineMaterial.js';
+import { LineGeometry } from './three/examples/jsm/lines/LineGeometry.js';
 
 var container;
 
 var camera, scene, renderer;
 var camera2, controls;
-var raycaster, mouse, plane, planeNormal, point;
+var raycaster, raycaster2, mouse, plane, planeNormal, point, intersects;
 
-var pressed;
+var pressed, moveerase;
 var penColor = "red";
 
 var coplanar;
@@ -20,11 +21,12 @@ var helper;
 var linePos = [];
 var distance = 0;
 
+var allDrawings = [];
+var drawingID = 0
+
 
 init();
 render();
-
-console.log(myRange.value);
 
 function init(){
 
@@ -66,6 +68,8 @@ function init(){
     coplanar = new THREE.Vector3();
     coplanar.copy(scene.position);
 
+    raycaster2 = new THREE.Raycaster();
+
 
 //Adding helper objects
     var initial = new THREE.Mesh(new THREE.BoxGeometry( 5, 5, 5), new THREE.MeshBasicMaterial({
@@ -87,7 +91,7 @@ function init(){
 
     //When draw function is active, use right mouse for camera rotation
     draw.addEventListener("change",()=>{
-      if (draw.checked){
+      if (draw.checked || erase.checked){
         controls.mouseButtons = { LEFT: THREE.MOUSE.RIGHT, MIDDLE: THREE.MOUSE.MIDDLE, RIGHT: THREE.MOUSE.LEFT };
         controls.update();
       }
@@ -132,6 +136,21 @@ function getPoint(event) {
   raycaster.setFromCamera(mouse, camera);
 
   raycaster.ray.intersectPlane(plane, point);
+
+  if (allDrawings.length>0 && erase.checked && moveerase){
+    raycaster2.setFromCamera(mouse, camera);
+    intersects = raycaster2.intersectObjects( allDrawings );
+    if(intersects.length > 0) {
+        $('html,body').css('cursor', 'pointer');
+        for ( var i = 0, l = intersects.length; i < l; i ++ ) {
+          var eraseid = intersects[i].object.name;
+          remove(eraseid);
+        }
+    } else {
+        $('html,body').css('cursor', 'default');
+    }
+  }
+
 }
 
 //In effect a brush
@@ -143,13 +162,29 @@ function onMouseDown(event) {
   getPoint(event);
   if (draw.checked & event.button == 0){
       pressed = true;
-      setPoint();
+      // setPoint();
   }
+  
+  if (allDrawings.length>0 && erase.checked){
+    moveerase = true;
+    pressed = true;
+    // raycaster2.setFromCamera(mouse, camera);
+    // intersects = raycaster2.intersectObjects( allDrawings );
+    if(intersects.length > 0) {
+        $('html,body').css('cursor', 'pointer');
+        
+        
+    } else {
+        $('html,body').css('cursor', 'default');
+    }
+  }  
+    
 }
 
 //Reset the position list
 function onMouseUp() {
   pressed = false;
+  moveerase = false;
   controls.enabled = true;
   linePos=[];
   console.log("linePos ",linePos);
@@ -157,10 +192,12 @@ function onMouseUp() {
 
 function onMouseMove(event) {
   getPoint(event);
-  if (draw.checked & pressed) {
+  if (pressed) {
     controls.enabled = false;
+    if (draw.checked){
     setPoint();
     }
+  }
 }
 
 function onKeyDown(event){
@@ -180,6 +217,7 @@ function onKeyDown(event){
 
 //By manipulating this function, adopt different brush types
 function drawObj(){
+  var stroke;
 
   //The first brush type is generated using mesh lines
   if (draw.checked && typeone.checked){
@@ -191,34 +229,47 @@ function drawObj(){
     //Setup strokes (draw lines)
     if (linePos.length > 1){
       var curve = new THREE.CatmullRomCurve3( linePos );
-      var points = curve.getPoints( 50 );
-    
-      var material = new MeshLineMaterial({
+      console.log("curve  ",curve);
+      var points = curve.getPoints( 80 );
+      var positions = [];
+      for ( var i = 0, l = points.length; i < l; i ++ ) {
+        positions.push( points[i].x, points[i].y, points[i].z );
+
+      }
+
+      var geometry = new LineGeometry();
+      geometry.setPositions( positions );
+      var material = new LineMaterial({
         color: penColor,  
-        lineWidth: (myRange.value)/100,
+        linewidth: (myRange.value)/1000,
+        dashed: false
       });
+      stroke = new Line2( geometry, material );
+      stroke.name = drawingID;
     
-      var line = new MeshLine();
-      line.setVertices(points);
-    
-      var curveObject = new THREE.Mesh( line, material );
-    
-      scene.add( curveObject );
+      scene.add( stroke );
       }
     }
 
   //The second brush type is a series of discrete cubes  
   else if (draw.checked && typetwo.checked){
     var boxsize = (myRange.value)/100;
-    var cube_point = new THREE.Mesh(new THREE.BoxGeometry(boxsize, boxsize, boxsize), new THREE.MeshBasicMaterial({
+    stroke = new THREE.Mesh(new THREE.BoxGeometry(boxsize, boxsize, boxsize), new THREE.MeshBasicMaterial({
       color: penColor,
     }));
 
-    cube_point.scale.set(1,1,1);
-    cube_point.position.copy(point);
+    stroke.scale.set(1,1,1);
+    stroke.position.copy(point);
+    stroke.name = drawingID;
 
-    scene.add(cube_point);  
+    scene.add(stroke);  
   }
+
+  if (typeof stroke != "undefined"){
+    allDrawings.push(stroke);
+  }
+  
+  drawingID++;
 }
 
 //Create a color palette
@@ -272,6 +323,12 @@ function load3Dmodels(){
   
     }
   );
+}
+
+function remove(id){
+  // console.log("the object is  ",scene.getObjectByName(id));
+  scene.remove(scene.getObjectByName(id));
+  // console.log('is it erase');
 }
 
 function render() {

@@ -13,7 +13,6 @@
 		<script src="js/colorPick.js"></script>
 
 		<script type="module" src="js/3Ddrawing.js"></script>
-		<!-- <script src="js/meshLine.js"></script> -->
 
 		<meta charset="utf-8">
 		<title>3D Drawing Implimentation Attempt</title>
@@ -22,6 +21,23 @@
 	
 	<div class="btn-group" role="group" aria-label="Button group with nested dropdown">
 			<button type="button" class="btn btn-secondary mr-1"><input id="draw" type="checkbox"><label>Draw</label></button>
+
+			<button type="button" class="btn btn-secondary mr-1"><input id="erase" type="checkbox" name="btype[1][]"><label>Erase</label></button>
+
+			<!-- <div class="btn-group mr-1" role="group">
+				<button id="btnGroupDrop4" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+				  Choose
+				</button>
+				<div class="dropdown-menu" aria-labelledby="btnGroupDrop4">
+					<div class="dropdown-item">
+						<input id="draw" type="checkbox" name="btype[1][]"><label>Draw</label>
+					</div>
+					<div class="dropdown-item">
+						<input id="erase" type="checkbox" name="btype[1][]"><label>Erase</label>
+					</div>
+				</div>
+			</div> -->
+
 			<button type="button" class="btn btn-secondary mr-1"><div class="colorPickSelector"></div></button>
 		  
 			<div class="btn-group mr-1" role="group">
