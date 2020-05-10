@@ -19,27 +19,16 @@
 	</head>
 	<body>
 	
+	<!-- Menu -->
 	<div class="btn-group" role="group" aria-label="Button group with nested dropdown">
+		<!-- Option to draw -->
 			<button type="button" class="btn btn-secondary mr-1"><input id="draw" type="checkbox"><label>Draw</label></button>
-
+		<!-- Option to erase -->
 			<button type="button" class="btn btn-secondary mr-1"><input id="erase" type="checkbox" name="btype[1][]"><label>Erase</label></button>
-
-			<!-- <div class="btn-group mr-1" role="group">
-				<button id="btnGroupDrop4" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-				  Choose
-				</button>
-				<div class="dropdown-menu" aria-labelledby="btnGroupDrop4">
-					<div class="dropdown-item">
-						<input id="draw" type="checkbox" name="btype[1][]"><label>Draw</label>
-					</div>
-					<div class="dropdown-item">
-						<input id="erase" type="checkbox" name="btype[1][]"><label>Erase</label>
-					</div>
-				</div>
-			</div> -->
-
+		<!-- Color picker -->
 			<button type="button" class="btn btn-secondary mr-1"><div class="colorPickSelector"></div></button>
-		  
+		
+		<!-- Brush size -->
 			<div class="btn-group mr-1" role="group">
 			  <button id="btnGroupDrop1" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 				Stroke Size
@@ -53,6 +42,7 @@
 			  </div>
 			</div>
 
+		<!-- Select brush type -->
 			<div class="btn-group mr-1" role="group">
 				<button id="btnGroupDrop2" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 				  Brush Type
@@ -67,6 +57,7 @@
 				</div>
 			</div>
 
+		<!-- Select preset models (currently empty) -->
 			<div class="btn-group mr-1" role="group">
 				<button id="btnGroupDrop3" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 				  Presets
@@ -76,6 +67,7 @@
 			</div>
 	</div>
 	
+	<!-- Placeholder for the drawing canvas -->
 	<div id="container"></div>	
 
 	</body>

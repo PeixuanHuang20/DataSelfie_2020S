@@ -10,12 +10,11 @@ var container;
 
 var camera, scene, renderer;
 var camera2, controls;
-var raycaster, raycaster2, mouse, plane, planeNormal, point, intersects;
+var raycaster, raycaster2, mouse, plane, planeNormal, point, intersects, coplanar;
 
-var pressed, moveerase;
+var pressed;
 var penColor = "red";
 
-var coplanar;
 var helper;
 
 var linePos = [];
@@ -34,7 +33,6 @@ function init(){
     container = document.getElementById('container');
 
     renderer = new THREE.WebGLRenderer({ antialias: true} );
-    // renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio( window.devicePixelRatio );
     renderer.setSize($(container).width(), $(container).height());
     renderer.domElement.id = 'drawhere';
@@ -68,20 +66,20 @@ function init(){
     coplanar = new THREE.Vector3();
     coplanar.copy(scene.position);
 
+//Second raycaster for erasing
     raycaster2 = new THREE.Raycaster();
 
 
-//Adding helper objects
+//Adding helper/reference objects
     var initial = new THREE.Mesh(new THREE.BoxGeometry( 5, 5, 5), new THREE.MeshBasicMaterial({
       color: "white",
     }));
 
-    // scene.add(initial);
+    scene.add(initial);
 
     helper = new THREE.PlaneHelper( plane, 10, "pink" );
     scene.add( helper );
     
-
    
 //Events setup -- start//
     document.addEventListener("mousedown", onMouseDown, false);
@@ -89,9 +87,9 @@ function init(){
     document.addEventListener("mousemove", onMouseMove, false);
     document.addEventListener("keydown", onKeyDown, false);
 
-    //When draw function is active, use right mouse for camera rotation
+    //When draw and erase function is active, use right mouse for camera rotation
     draw.addEventListener("change",()=>{
-      if (draw.checked || erase.checked){
+      if (draw.checked){
         controls.mouseButtons = { LEFT: THREE.MOUSE.RIGHT, MIDDLE: THREE.MOUSE.MIDDLE, RIGHT: THREE.MOUSE.LEFT };
         controls.update();
       }
@@ -101,6 +99,19 @@ function init(){
       }
     })
 
+    erase.addEventListener("change",()=>{
+      if (erase.checked){
+        controls.mouseButtons = { LEFT: THREE.MOUSE.RIGHT, MIDDLE: THREE.MOUSE.MIDDLE, RIGHT: THREE.MOUSE.LEFT };
+        controls.update();
+        console.log("ddd");
+      }
+      else{
+        controls.mouseButtons = { LEFT: THREE.MOUSE.LEFT, MIDDLE: THREE.MOUSE.MIDDLE, RIGHT: THREE.MOUSE.RIGHT };
+        controls.update();
+      }
+    })
+
+    //Checkbox restriction (incomplete)
     $("input:checkbox").on('click', function() {
       var $box = $(this);
       if ($box.is(":checked")) {
@@ -116,28 +127,30 @@ function init(){
 //Menu section
     colorpicker();
 
+//Load preset 3D models
     // load3Dmodels();
 }
 
 
-//Get the point from the mouse
+//Get the point from the mouse on the 2D plane
 function getPoint(event) {
-  coplanar.copy(scene.position);
+  coplanar.copy(scene.position); //A vector on the plane is the scene position
 
   //Need to be adjusted when the canvas position is changed (trial and error)
   mouse.x = (event.clientX / $(container).width()) * 2 - 1;
   mouse.y = -(event.clientY / $(container).height()) * 2 + 1.11;
 
   //Set up the plane for reycasting and intersection
-  planeNormal.copy(camera.position).normalize();
-  coplanar.addScaledVector(planeNormal,distance);
+  planeNormal.copy(camera.position).normalize(); //Normal vector of the plane from camera position
+  coplanar.addScaledVector(planeNormal,distance); //Use to adjust the "z" of the plane
   plane.setFromNormalAndCoplanarPoint(planeNormal, coplanar);
 
   raycaster.setFromCamera(mouse, camera);
 
   raycaster.ray.intersectPlane(plane, point);
 
-  if (allDrawings.length>0 && erase.checked && moveerase){
+  //Set up the second raycaster and interaction for erasing drawings
+  if (allDrawings.length>0 && erase.checked && pressed){
     raycaster2.setFromCamera(mouse, camera);
     intersects = raycaster2.intersectObjects( allDrawings );
     if(intersects.length > 0) {
@@ -165,29 +178,18 @@ function onMouseDown(event) {
       // setPoint();
   }
   
-  if (allDrawings.length>0 && erase.checked){
-    moveerase = true;
+  if (allDrawings.length>0 & erase.checked & event.button == 0){
     pressed = true;
-    // raycaster2.setFromCamera(mouse, camera);
-    // intersects = raycaster2.intersectObjects( allDrawings );
-    if(intersects.length > 0) {
-        $('html,body').css('cursor', 'pointer');
-        
-        
-    } else {
-        $('html,body').css('cursor', 'default');
-    }
+    console.log("abc");
   }  
     
 }
 
-//Reset the position list
+//Reset the position list and orbitcontrol when mouse released
 function onMouseUp() {
   pressed = false;
-  moveerase = false;
   controls.enabled = true;
   linePos=[];
-  console.log("linePos ",linePos);
 }
 
 function onMouseMove(event) {
@@ -200,18 +202,21 @@ function onMouseMove(event) {
   }
 }
 
+//Use press key events to adjust "z" of the interactive plane 
 function onKeyDown(event){
+  //Press E
   if (event.keyCode==81){
     distance = distance + 0.05;
   }
+  //Press Q
   else if (event.keyCode==69){
     distance = distance - 0.05;
   }
+  //Press R
   else if (event.keyCode==82){
     distance = 0;
   }    
   getPoint(event)
-  // plane.setFromNormalAndCoplanarPoint(planeNormal, coplanar);
 }
 
 
@@ -229,9 +234,9 @@ function drawObj(){
     //Setup strokes (draw lines)
     if (linePos.length > 1){
       var curve = new THREE.CatmullRomCurve3( linePos );
-      console.log("curve  ",curve);
       var points = curve.getPoints( 80 );
       var positions = [];
+      //Restructure the positions format to adopt LineGeometry
       for ( var i = 0, l = points.length; i < l; i ++ ) {
         positions.push( points[i].x, points[i].y, points[i].z );
 
@@ -245,7 +250,7 @@ function drawObj(){
         dashed: false
       });
       stroke = new Line2( geometry, material );
-      stroke.name = drawingID;
+      stroke.name = drawingID; //Give each new drawing an id for erase/remove purposes
     
       scene.add( stroke );
       }
@@ -290,7 +295,7 @@ function colorpicker(){
 }
 
 
-//Load preset models
+//Used for loading preset models
 function load3Dmodels(){  
 
   var loader = new GLTFLoader();
@@ -325,10 +330,9 @@ function load3Dmodels(){
   );
 }
 
+//Remove object by id
 function remove(id){
-  // console.log("the object is  ",scene.getObjectByName(id));
   scene.remove(scene.getObjectByName(id));
-  // console.log('is it erase');
 }
 
 function render() {
