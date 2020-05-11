@@ -132,55 +132,14 @@ function init(){
 }
 
 
-//Get the point from the mouse on the 2D plane
-function getPoint(event) {
-  coplanar.copy(scene.position); //A vector on the plane is the scene position
-
-  //Need to be adjusted when the canvas position is changed (trial and error)
-  mouse.x = (event.clientX / $(container).width()) * 2 - 1;
-  mouse.y = -(event.clientY / $(container).height()) * 2 + 1.11;
-
-  //Set up the plane for reycasting and intersection
-  planeNormal.copy(camera.position).normalize(); //Normal vector of the plane from camera position
-  coplanar.addScaledVector(planeNormal,distance); //Use to adjust the "z" of the plane
-  plane.setFromNormalAndCoplanarPoint(planeNormal, coplanar);
-
-  raycaster.setFromCamera(mouse, camera);
-
-  raycaster.ray.intersectPlane(plane, point);
-
-  //Set up the second raycaster and interaction for erasing drawings
-  if (allDrawings.length>0 && erase.checked && pressed){
-    raycaster2.setFromCamera(mouse, camera);
-    intersects = raycaster2.intersectObjects( allDrawings );
-    if(intersects.length > 0) {
-        $('html,body').css('cursor', 'pointer');
-        for ( var i = 0, l = intersects.length; i < l; i ++ ) {
-          var eraseid = intersects[i].object.name;
-          remove(eraseid);
-        }
-    } else {
-        $('html,body').css('cursor', 'default');
-    }
-  }
-
-}
-
-//In effect a brush
-function setPoint() {
-  drawObj();
-}
-
 function onMouseDown(event) {
   getPoint(event);
   if (draw.checked & event.button == 0){
       pressed = true;
-      // setPoint();
+      // drawObj();
   }
-  
-  if (allDrawings.length>0 & erase.checked & event.button == 0){
+  else if (allDrawings.length>0 & erase.checked & event.button == 0){
     pressed = true;
-    console.log("abc");
   }  
     
 }
@@ -197,7 +156,7 @@ function onMouseMove(event) {
   if (pressed) {
     controls.enabled = false;
     if (draw.checked){
-    setPoint();
+      drawObj();
     }
   }
 }
@@ -220,7 +179,40 @@ function onKeyDown(event){
 }
 
 
-//By manipulating this function, adopt different brush types
+//Get the point from the mouse on the 2D plane
+function getPoint(event) {
+  coplanar.copy(scene.position); //A vector on the plane is the scene position
+
+  //Need to be adjusted when the canvas position is changed (trial and error)
+  mouse.x = (event.clientX / $(container).width()) * 2 - 1;
+  mouse.y = -(event.clientY / $(container).height()) * 2 + 1.11;
+
+  //Set up the plane for reycasting and intersection
+  planeNormal.copy(camera.position).normalize(); //Normal vector of the plane from camera position
+  coplanar.addScaledVector(planeNormal,distance); //Use to adjust the "z" of the plane
+  plane.setFromNormalAndCoplanarPoint(planeNormal, coplanar);
+
+  raycaster.setFromCamera(mouse, camera);
+
+  raycaster.ray.intersectPlane(plane, point);
+
+  //Set up the second raycaster and interaction for erasing drawings
+  if (allDrawings.length>0 && erase.checked && pressed){
+    raycaster2.setFromCamera(mouse, camera);
+    intersects = raycaster2.intersectObjects( allDrawings );
+    if(intersects.length > 0) {
+      $('html,body').css('cursor', 'pointer');
+      eraseObj();
+    }
+    else {
+      $('html,body').css('cursor', 'default');
+    }
+  }
+
+}
+
+
+//In effect a brush for drawing objects. By manipulating this function, adopt different brush types
 function drawObj(){
   var stroke;
 
@@ -277,6 +269,16 @@ function drawObj(){
   drawingID++;
 }
 
+//Function for the eraser
+function eraseObj(){
+
+  for ( var i = 0, l = intersects.length; i < l; i ++ ) {
+    var eraseid = intersects[i].object.name;
+    scene.remove(scene.getObjectByName(eraseid));
+  }
+
+}
+
 //Create a color palette
 function colorpicker(){
   $(".colorPickSelector").colorPick();
@@ -330,10 +332,6 @@ function load3Dmodels(){
   );
 }
 
-//Remove object by id
-function remove(id){
-  scene.remove(scene.getObjectByName(id));
-}
 
 function render() {
   requestAnimationFrame(render);
