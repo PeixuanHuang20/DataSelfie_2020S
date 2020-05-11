@@ -2,9 +2,9 @@
 
 This is an in-progress implementation in three.js of a 3D canvas which allows the users to draw in 3-dimensional space using a mouse.
 
-
+------
 [UI]
-
+------
 On top of the canvas there is the options menu. The first two checkboxes of "Draw" and "Erase" allow the user to switcher between drawing and eraser mode. The third box contains a color palette for the user to choose a brush color. The fourth box has a slider to adjust the brush size. The fifth box allows the user to choose different brush types. Currently there are two brush types available, one is the "line" with adjustable thickness, and the other is composed of discrete cubes. The last box will give the user options to load a selection of preset 3D models. The presets loading function is currently not implemented.
 
 On the drawing canvas, there is a big white cube placing at the center of the scene and used for reference purposes. There is also a red semi-transparent "plane helper", which visualizes the plane the user is currently drawing on. Drawing in the 3D space is achieved through changing the plane the user interacts with.
@@ -15,9 +15,9 @@ To draw on the canvas, check the "Draw" box and pick the brush type from the "Br
 
 To erase the drawings, check the "Erase" box. Press down and hold the left mouse. Move along the canvas to allow the cursor to intersect with the drawings. Once there is an intersection, the drawings will be removed from the scene.
 
-
+------
 [Code implementation]
-
+------
 This code contains the whole three.js package through npm installation.
 
 Functions---
@@ -68,14 +68,21 @@ If key "Q" is pressed, reduce the global variable "distance". If key "E" is pres
 The "distance" variable will be used to add scalars to the coplanar point in the getPoint(), so that the distance between the plane and the viewer can be manipulated through pressing different keys.
 Call getPoint() to update the plane.
 
-colorPicker(): Call to display the color palette in the options menu.
-load3Dmodels(): Used for loading locally saved models.
+colorPicker(): 
 
-render(): Render the scene.
+Call to display the color palette in the options menu.
 
+load3Dmodels(): 
 
+Used for loading locally saved models.
+
+render(): 
+
+Render the scene.
+
+------
 [Suggested improvement]
-
+------
 UI-side
 1. Improve the design of the options menu. Currently the checkboxes are not aesthetically pleasing. The simultaneous checking should also be disabled (between "Draw" and Erase" for example).
 2. Update cursor with different functionalities.
